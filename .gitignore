@@ -1,0 +1,8 @@
+# Build outputs
+*.exe
+*.pdb
+*.ilk
+*.obj
+
+# Editor files
+*.sublime-workspace
