@@ -1,0 +1,36 @@
+package main
+import "core:math/linalg"
+import rl "vendor:raylib"
+
+
+Sphere :: struct {
+	using obj: Object,
+	center:    rl.Vector3,
+	radius:    f32,
+}
+
+MakeSphere :: proc(center: rl.Vector3, radius: f32, color: rl.Vector3) -> Sphere {
+
+	obj := MakeObject(color)
+	return {obj = obj, center = center, radius = radius}
+}
+
+CheckRayCollisionSpherePoint :: proc(sphere: Sphere, ray: Ray) -> Hit {
+	hit: Hit = {-1.0, rl.Vector3(0), rl.Vector3(0), sphere.obj}
+
+	oc := ray.dir - sphere.center
+	uoc := linalg.dot(ray.dir, oc)
+	oc2 := linalg.dot(oc, oc)
+	radiusSpuare := sphere.radius * sphere.radius
+	det := uoc * uoc - (oc2 - radiusSpuare)
+
+	if det >= 0 {
+		d1 := -uoc + det
+		d2 := -uoc - det
+
+		hit.d = min(d1, d1)
+		hit.point = ray.start - ray.dir * hit.d
+		hit.normal = rl.Vector3Normalize(hit.point - sphere.center)
+	}
+	return hit
+}
