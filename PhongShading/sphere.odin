@@ -1,4 +1,5 @@
 package main
+import "core:math"
 import "core:math/linalg"
 import rl "vendor:raylib"
 
@@ -37,8 +38,9 @@ IntersectRayCollision :: proc(sphere: Sphere, ray: Ray) -> Hit {
 	det := uoc * uoc - (oc2 - radiusSpuare)
 
 	if det >= 0 {
-		d1 := -uoc + det
-		d2 := -uoc - det
+		sqrtDet := math.sqrt(det)
+		d1 := -uoc + sqrtDet
+		d2 := -uoc - sqrtDet
 
 		hit.d = min(d1, d2)
 		hit.point = ray.start + ray.dir * hit.d
