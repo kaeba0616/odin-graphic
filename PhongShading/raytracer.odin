@@ -7,7 +7,7 @@ import rl "vendor:raylib"
 Raytracer :: struct {
 	width, height: i32,
 	using light:   Light,
-	objs:          [dynamic]Sphere,
+	sphere:        Sphere,
 }
 
 
@@ -17,64 +17,20 @@ InitRayTracer :: proc(raytracer: ^Raytracer, width, height: i32) {
 	raytracer.height = height
 	raytracer.light = Light{{0.0, 0.0, -1.0}}
 
-	sphere1 := MakeSphere(
-		center = rl.Vector3{0.5, 0.0, 0.5},
-		radius = 0.4,
-		color = rl.Vector3{0.5, 0.5, 0.5},
-	)
-
-	//	sphere2 := MakeSphere(
-	//		center = rl.Vector3{0.0, 0.0, 1.0},
-	//		radius = 0.4,
-	//		color = rl.Vector3{0.5, 0.5, 0.5},
-	//	)
-	//	sphere3 := MakeSphere(
-	//		center = rl.Vector3{-0.5, 0.0, 1.5},
-	//		radius = 0.4,
-	//		color = rl.Vector3{0.5, 0.5, 0.5},
-	//	)
-
-	sphere1.amb = rl.Vector3(0.2)
-	sphere1.diff = rl.Vector3{1.0, 0.2, 0.2}
-	sphere1.spec = rl.Vector3(0.5)
-	sphere1.alpha = 10.0
-
-	//	sphere2.amb = rl.Vector3(0.2)
-	//	sphere2.diff = rl.Vector3{0.2, 1.0, 0.2}
-	//	sphere2.spec = rl.Vector3(0.5)
-	//	sphere2.alpha = 10.0
-	//
-	//	sphere3.amb = rl.Vector3(0.2)
-	//	sphere3.diff = rl.Vector3{0.2, 0.2, 1.0}
-	//	sphere3.spec = rl.Vector3(0.5)
-	//	sphere3.alpha = 10.0
-
-	append(&raytracer.objs, sphere1)
-
+	raytracer.sphere = MakeSphere(center = rl.Vector3{0.0, 0.0, 0.5}, radius = 0.5)
+	raytracer.sphere.amb = rl.Vector3(0)
+	raytracer.sphere.dif = rl.Vector3{0.0, 0.0, 1.0}
+	raytracer.sphere.spec = rl.Vector3(1)
+	raytracer.sphere.alpha = 9.0
+	raytracer.sphere.ks = 0.8
 }
 
-FindClosestCollision :: proc(raytracer: Raytracer, ray: Ray) -> Hit {
-	closestD: f32 = 1000.0
-	closestHit: Hit = {-1.0, rl.Vector3(0.0), rl.Vector3(0.0), Sphere{}}
-
-	for obj in raytracer.objs {
-		hit := CheckRayCollisionSpherePoint(obj, ray)
-
-		if hit.d >= 0 {
-			if hit.d < closestD {
-				closestD = hit.d
-				closestHit = hit
-				closestHit.obj = obj
-			}
-		}
-
-	}
-	return closestHit
-}
 
 TraceRay :: proc(raytracer: Raytracer, ray: Ray) -> rl.Vector3 {
 
-	hit := FindClosestCollision(raytracer, ray)
+	sphere: Sphere = raytracer.sphere
+
+	hit := IntersectRayCollision(sphere, ray)
 
 	if hit.d >= 0.0 {
 
@@ -84,10 +40,10 @@ TraceRay :: proc(raytracer: Raytracer, ray: Ray) -> rl.Vector3 {
 
 		// specular
 		dirToReflect := 2.0 * linalg.dot(hit.normal, dirToLight) * hit.normal - dirToLight
-		spec := math.pow(max(linalg.dot(-ray.dir, dirToLight), 0.0), hit.obj.alpha)
+		spec := math.pow(max(linalg.dot(-ray.dir, dirToReflect), 0.0), sphere.alpha)
 
 		//ambiant
-		return hit.amb + hit.diff * diff + hit.spec * spec
+		return sphere.amb + sphere.dif * diff + sphere.spec * spec
 	}
 	return rl.Vector3(0)
 }
@@ -95,14 +51,13 @@ TraceRay :: proc(raytracer: Raytracer, ray: Ray) -> rl.Vector3 {
 Render :: proc(raytracer: Raytracer, pixels: []rl.Vector4) {
 	slice.fill(pixels, rl.Vector4{0.0, 0.0, 0.0, 1.0})
 
-	eyePos := rl.Vector3{0.0, 0.0, -1.5}
 
 	for j in 0 ..< raytracer.height {
 		for i in 0 ..< raytracer.width {
 			pixelPosWorld: rl.Vector3 = TransformScreenToWorld(raytracer, {f32(i), f32(j)})
 
 			rayDir := rl.Vector3{0.0, 0.0, 1.0}
-			pixelRay: Ray = {pixelPosWorld, rl.Vector3Normalize(pixelPosWorld - eyePos)}
+			pixelRay: Ray = {pixelPosWorld, rayDir}
 
 			clamp := rl.Vector3Clamp(TraceRay(raytracer, pixelRay), {0, 0, 0}, {1.0, 1.0, 1.0})
 			pixels[i + raytracer.width * j] = rl.Vector4{clamp.x, clamp.y, clamp.z, 1.0}
