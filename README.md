@@ -32,6 +32,7 @@ GPU 셰이더 대신 CPU에서 픽셀을 하나씩 계산하고, 그 결과를 �
 | `BarycentricCordinations` | 삼각형 교차 지점의 무게중심 좌표(barycentric coordinates)를 넓이 비율로 구하고, 세 꼭짓점의 빨강, 초록, 파랑을 그 비율로 섞어 칠합니다. |
 | `texturing` | 꼭짓점에 UV 좌표를 주고, 무게중심 좌표로 보간한 UV로 이미지 텍스처를 샘플링해 사각형에 입힙니다. 최근접(point) 샘플링과 쌍선형(bilinear) 보간 샘플링을 구현했습니다. |
 | `superSampling` | 안티에일리어싱을 위해 한 픽셀을 2x2로 나누는 과정을 재귀적으로 3번 반복해 광선을 여러 개 쏘고, 그 색을 평균냅니다. 나머지는 `texturing`과 같습니다. |
+| `reflection` | 재질에 반사율과 투명도를 추가하고, 반사 광선과 굴절 광선을 재귀적으로 추적합니다. 굴절은 스넬의 법칙(굴절률 1.5)으로 계산하며, 텍스처를 입힌 바닥과 배경 앞에 투명한 구를 놓았습니다. |
 
 ## 실행 방법
 
@@ -44,4 +45,4 @@ cd shadow
 odin run .
 ```
 
-`Bloom`, `texturing`, `superSampling`은 같은 폴더의 이미지 파일을 읽기 때문에 반드시 해당 폴더 안에서 실행해야 합니다.
+`Bloom`, `texturing`, `superSampling`, `reflection`은 같은 폴더의 이미지 파일을 읽기 때문에 반드시 해당 폴더 안에서 실행해야 합니다.
