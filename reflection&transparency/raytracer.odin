@@ -122,6 +122,8 @@ FindClosestCollision :: proc(objs: [dynamic]Object, ray: Ray) -> Hit {
 TraceRay :: proc(raytracer: Raytracer, ray: Ray, recursive: i32) -> rl.Vector3 {
 	objs := raytracer.objs
 
+	if recursive < 0 do return rl.Vector3(0)
+
 	hit := FindClosestCollision(objs, ray)
 
 	if hit.d >= 0.0 {
